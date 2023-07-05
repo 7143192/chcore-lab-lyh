@@ -158,6 +158,48 @@ u64 switch_context(void)
         return (u64)target_ctx;
 }
 
+/*
+ * lab4: handle timer irq
+ * Hints: Should check current_thread and its sc first
+ */
+void sched_handle_timer_irq(void)
+{
+        /* LAB 4 TODO BEGIN */
+        // if (current_thread == NULL || current_thread->thread_ctx == NULL || current_thread->thread_ctx->sc == NULL) {
+        //         sched();
+        //         return ;
+        // }
+        // if (current_thread->thread_ctx->sc->budget == 0) return ;
+        // current_thread->thread_ctx->sc->budget--;
+        // if (current_thread->thread_ctx->sc->budget == 0) {
+        //         sched();
+        //         return ;
+        // }
+
+        if (current_thread == NULL || current_thread->thread_ctx == NULL || current_thread->thread_ctx->sc == NULL) return ;
+        if (current_thread->thread_ctx->sc->budget == 0) return ; 
+        current_thread->thread_ctx->sc->budget--;
+        /* LAB 4 TODO END */
+}
+
+/* SYSCALL functions */
+
+void sys_yield(void)
+{
+        /* LAB 4 TODO BEGIN */
+        current_thread->thread_ctx->sc->budget = 0;
+        sched();
+        // return to user mode.
+        eret_to_thread(switch_context());
+        /* LAB 4 TODO END */
+        BUG("Should not return!\n");
+}
+
+void sys_top(void)
+{
+        cur_sched_ops->sched_top();
+}
+
 int sched_init(struct sched_ops *sched_ops)
 {
         BUG_ON(sched_ops == NULL);

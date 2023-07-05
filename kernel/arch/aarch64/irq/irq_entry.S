@@ -17,6 +17,8 @@
 #include "irq_entry.h"
 
 .extern syscall_table
+.extern lock_kernel
+.extern unlock_kernel
 
 .macro	exception_entry	label
 	/* Each entry should be 0x80 aligned */
@@ -147,6 +149,12 @@ EXPORT(el1_vector)
  */
 
 irq_el1h:
+    /* Simply reusing exception_enter/exit is OK. */
+	exception_enter
+	mov	x0, IRQ_EL1h
+	bl	handle_irq
+	exception_exit /* Lab4: Do not unlock! */
+
 irq_el1t:
 fiq_el1t:
 fiq_el1h:
@@ -165,7 +173,7 @@ sync_el1h:
 	/* LAB 3 TODO BEGIN */
 	bl handle_entry_c
 	/* LAB 3 TODO END */
-	exception_exit /* Lab4: Do not unlock! */
+	exception_exit /* Lab 4: Do not unlock! */
 
 sync_el0_64:
 	/* Since we cannot touch x0-x7, we need some extra work here */
@@ -180,6 +188,9 @@ sync_el0_64:
 	mrs	x2, elr_el1
 	bl	handle_entry_c
 
+
+	/*unlock here before retuen to user mode.*/
+	bl unlock_kernel
 	exception_exit
 
 el0_syscall:
@@ -194,6 +205,9 @@ el0_syscall:
 	stp	x12, x13, [sp, #16 * 6]
 	stp	x14, x15, [sp, #16 * 7]
 	
+	/* LAB 4 TODO BEGIN */
+	bl lock_kernel
+	/* LAB 4 TODO END */
 
 	ldp	x0, x1, [sp, #16 * 0]
 	ldp	x2, x3, [sp, #16 * 1]
@@ -212,10 +226,19 @@ el0_syscall:
 
 	/* Ret from syscall */
 	str	x0, [sp]
+
+	/*unlock here.*/
+	bl unlock_kernel
 	exception_exit
 
 
 irq_el0_64:
+	exception_enter
+	mov	x0, IRQ_EL0_64
+	bl	handle_irq
+	/* should nerver reach here */
+	b .
+
 error_el0_64:
 fiq_el0_64:
 sync_el0_32:
@@ -228,5 +251,8 @@ error_el0_32:
 BEGIN_FUNC(__eret_to_thread)
 	mov	sp, x0
 	dmb ish
+
+	/*unlock here.*/
+	bl unlock_kernel
 	exception_exit
 END_FUNC(__eret_to_thread)

@@ -48,6 +48,13 @@ void arch_interrupt_init(void)
 
 void handle_entry_c(int type, u64 esr, u64 address)
 {
+        /* Acquire the big kernel lock, if the exception is not from kernel */
+        /* LAB 4 TODO BEGIN */
+        if (type >= SYNC_EL0_64) {
+                lock_kernel();
+        }
+        /* LAB 4 TODO END */
+
         /* ec: exception class */
         u32 esr_ec = GET_ESR_EL1_EC(esr);
 
@@ -69,64 +76,64 @@ void handle_entry_c(int type, u64 esr, u64 address)
         /* Dispatch exception according to EC */
         switch (esr_ec) {
         case ESR_EL1_EC_UNKNOWN:
-                kinfo("Unknown\n");
+                kdebug("Unknown\n");
                 break;
         case ESR_EL1_EC_WFI_WFE:
-                kinfo("Trapped WFI or WFE instruction execution\n");
+                kdebug("Trapped WFI or WFE instruction execution\n");
                 return;
         case ESR_EL1_EC_ENFP:
-                kinfo("Access to SVE, Advanced SIMD, or floating-point functionality\n");
+                kdebug("Access to SVE, Advanced SIMD, or floating-point functionality\n");
                 break;
         case ESR_EL1_EC_ILLEGAL_EXEC:
-                kinfo("Illegal Execution state\n");
+                kdebug("Illegal Execution state\n");
                 break;
         case ESR_EL1_EC_SVC_32:
-                kinfo("SVC instruction execution in AArch32 state\n");
+                kdebug("SVC instruction execution in AArch32 state\n");
                 break;
         case ESR_EL1_EC_SVC_64:
-                kinfo("SVC instruction execution in AArch64 state\n");
+                kdebug("SVC instruction execution in AArch64 state\n");
                 break;
         case ESR_EL1_EC_MRS_MSR_64:
-                kinfo("Using MSR or MRS from a lower Exception level\n");
+                kdebug("Using MSR or MRS from a lower Exception level\n");
                 break;
         case ESR_EL1_EC_IABT_LEL:
-                kinfo("Instruction Abort from a lower Exception level\n");
+                kdebug("Instruction Abort from a lower Exception level\n");
                 /* Page fault handler here:
                  * dynamic loading can trigger faults here.
                  */
                 do_page_fault(esr, address);
                 return;
         case ESR_EL1_EC_IABT_CEL:
-                kinfo("Instruction Abort from current Exception level\n");
+                kdebug("Instruction Abort from current Exception level\n");
                 break;
         case ESR_EL1_EC_PC_ALIGN:
-                kinfo("PC alignment fault exception\n");
+                kdebug("PC alignment fault exception\n");
                 break;
         case ESR_EL1_EC_DABT_LEL:
-                kinfo("Data Abort from a lower Exception level\n");
+                kdebug("Data Abort from a lower Exception level\n");
                 /* Handle faults caused by data access.
                  * We only consider page faults for now.
                  */
                 do_page_fault(esr, address);
                 return;
         case ESR_EL1_EC_DABT_CEL:
-                kinfo("Data Abort from a current Exception level\n");
+                // kinfo("Data Abort from a current Exception level\n");
                 do_page_fault(esr, address);
                 return;
         case ESR_EL1_EC_SP_ALIGN:
-                kinfo("SP alignment fault exception\n");
+                kdebug("SP alignment fault exception\n");
                 break;
         case ESR_EL1_EC_FP_32:
-                kinfo("Trapped floating-point exception taken from AArch32 state\n");
+                kdebug("Trapped floating-point exception taken from AArch32 state\n");
                 break;
         case ESR_EL1_EC_FP_64:
-                kinfo("Trapped floating-point exception taken from AArch64 state\n");
+                kdebug("Trapped floating-point exception taken from AArch64 state\n");
                 break;
         case ESR_EL1_EC_SError:
-                kinfo("SERROR\n");
+                kdebug("SERROR\n");
                 break;
         default:
-                kinfo("Unsupported Exception ESR %lx\n", esr);
+                kdebug("Unsupported Exception ESR %lx\n", esr);
                 break;
         }
 
@@ -143,12 +150,21 @@ void handle_entry_c(int type, u64 esr, u64 address)
 /* Interrupt handler for interrupts happening when in EL0. */
 void handle_irq(int type)
 {
+        /**
+         * Lab4
+         * Acquire the big kernel lock, if :
+         *	The irq is not from the kernel
+         * 	The thread being interrupted is an idle thread.
+         */
         if (type >= SYNC_EL0_64
             || current_thread->thread_ctx->type == TYPE_IDLE) {
+                /* LAB 4 TODO BEGIN */
+                lock_kernel();
+                /* LAB 4 TODO END */
         }
 
         plat_handle_irq();
-
+        sched();
         eret_to_thread(switch_context());
 }
 

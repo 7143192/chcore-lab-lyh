@@ -135,7 +135,7 @@ int handle_trans_fault(struct vmspace *vmspace, vaddr_t fault_addr)
         u64 index;
         int ret = 0;
         // find corresponding vmregion for the fault vaddr.
-        printk("[DEBUG] fault_addr = 0x%lx\n", fault_addr);
+        // printk("[DEBUG] fault_addr = 0x%lx\n", fault_addr);
         vmr = find_vmr_for_va(vmspace, fault_addr);
         if (vmr == NULL) {
                 printk("handle_trans_fault: no vmr found for va 0x%lx!\n",

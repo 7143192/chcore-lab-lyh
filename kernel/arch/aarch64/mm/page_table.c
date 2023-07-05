@@ -331,29 +331,49 @@ int unmap_range_in_pgtbl(void *pgtbl, vaddr_t va, size_t len)
          * mark the final level pte as invalid. Iterate until all pages are
          * unmapped.
          */
-        int num = 0;
-        if (len % PAGE_SIZE == 0) num = len / PAGE_SIZE;
-        else num = len / PAGE_SIZE + 1;
-        for (size_t i = 0; i < num; ++i) {
-                ptp_t* cur_ptp = (ptp_t*) pgtbl;
-                ptp_t* next_ptp_0;
-                ptp_t* next_ptp_1;
-                ptp_t* next_ptp_2;
-                ptp_t* next_ptp_3;
-                pte_t* pte;
-                int res0 = get_next_ptp(cur_ptp, 0, va, &cur_ptp, &pte, false);
-                // if (res0 == -ENOMAPPING) return res0;
-                int res1 = get_next_ptp(cur_ptp, 1, va, &cur_ptp, &pte, false);
-                // if (res1 == -ENOMAPPING) return res1;
-                int res2 = get_next_ptp(cur_ptp, 2, va, &cur_ptp, &pte, false);
-                // if (res2 == -ENOMAPPING) return res2;
-                // int res3 = get_next_ptp(next_ptp_2, 3, va, &next_ptp_3, &pte, false);
-                // if (res3 == -ENOMAPPING) return res3;
-                // invalid all final-level pages.
-                // (pte->l3_page).is_valid = 0;
-                // cur_ptp->ent[GET_L3_INDEX(va)].pte = 0;
-                pte->pte = (pte->pte & (~(0x1ULL)));
-                va += PAGE_SIZE;
+        // int num = 0;
+        // if (len % PAGE_SIZE == 0) num = len / PAGE_SIZE;
+        // else num = len / PAGE_SIZE + 1;
+        // for (size_t i = 0; i < num; ++i) {
+        //         ptp_t* cur_ptp = (ptp_t*) pgtbl;
+        //         ptp_t* next_ptp_0;
+        //         ptp_t* next_ptp_1;
+        //         ptp_t* next_ptp_2;
+        //         ptp_t* next_ptp_3;
+        //         pte_t* pte;
+        //         int res0 = get_next_ptp(cur_ptp, 0, va, &cur_ptp, &pte, false);
+        //         // if (res0 == -ENOMAPPING) return res0;
+        //         int res1 = get_next_ptp(cur_ptp, 1, va, &cur_ptp, &pte, false);
+        //         // if (res1 == -ENOMAPPING) return res1;
+        //         int res2 = get_next_ptp(cur_ptp, 2, va, &cur_ptp, &pte, false);
+        //         // if (res2 == -ENOMAPPING) return res2;
+        //         // int res3 = get_next_ptp(next_ptp_2, 3, va, &next_ptp_3, &pte, false);
+        //         // if (res3 == -ENOMAPPING) return res3;
+        //         // invalid all final-level pages.
+        //         (pte->l3_page).is_valid = 0;
+        //         cur_ptp->ent[GET_L3_INDEX(va)].pte = 0;
+        //         // pte->pte = (pte->pte & (~(0x1ULL)));
+        //         va += PAGE_SIZE;
+        // }
+        // return 0;
+
+        ptp_t *next_ptp, *current_ptp = (ptp_t *)pgtbl;
+        pte_t *pte;
+        u64 index;
+        // for (current_ptp = (ptp_t *)pgtbl, index = 0; index < len;
+        // index += PAGE_SIZE, current_ptp = (ptp_t *)pgtbl) {
+        //         for (int level = 0; level < 3; level++, current_ptp = next_ptp)
+        //                 get_next_ptp(current_ptp, level, va + index, &next_ptp, &pte, false);
+        //         pte = &current_ptp->ent[GET_L3_INDEX((va + index))];
+        //         memset(pte, 0, sizeof(pte_t));
+        // }
+        for (index = 0; index < len; index += PAGE_SIZE) {
+                current_ptp = (ptp_t*) pgtbl;
+                get_next_ptp(current_ptp, 0, va + index, &current_ptp, &pte, false);
+                get_next_ptp(current_ptp, 1, va + index, &current_ptp, &pte, false);
+                get_next_ptp(current_ptp, 2, va + index, &current_ptp, &pte, false);
+                pte = &current_ptp->ent[GET_L3_INDEX((va + index))];
+                memset(pte, 0, sizeof(pte_t));
         }
         return 0;
         /* LAB 2 TODO 3 END */
