@@ -141,7 +141,7 @@ struct page *buddy_get_pages(struct phys_mem_pool *pool, u64 order)
         list_del(node);
         // decrease the number of available items in the cur free_list.
         (pool->free_lists[cur]).nr_free--;
-        struct page* tmp = list_entry(node, struct page, node);
+        struct page* tmp = container_of(node, struct page, node);
         // tmp->allocated = 1;
         // tmp->node = *node;
         // tmp->order = cur;

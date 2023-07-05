@@ -289,19 +289,33 @@ int map_range_in_pgtbl(void *pgtbl, vaddr_t va, paddr_t pa, size_t len,
                 ptp_t* next_ptp_3;
                 pte_t* pte;
                 // as it is a MAP function, so we need to map need mapping when there is no.
-                int res0 = get_next_ptp(cur_ptp, 0, va, &next_ptp_0, &pte, true);
+                int res0 = get_next_ptp(cur_ptp, 0, va, &cur_ptp, &pte, true);
                 // if (res0 == -ENOMAPPING) return res0;
-                int res1 = get_next_ptp(next_ptp_0, 1, va, &next_ptp_1, &pte, true);
+                int res1 = get_next_ptp(cur_ptp, 1, va, &cur_ptp, &pte, true);
                 // if (res1 == -ENOMAPPING) return res1;
-                int res2 = get_next_ptp(next_ptp_1, 2, va, &next_ptp_2, &pte, true);
-                // if (res2 == -ENOMAPPING) return res2;
-                pte_t new_pte;
-                new_pte.pte = 0;
-                new_pte.l3_page.pfn = pa >> 12;
-                new_pte.l3_page.is_page = 1;
-                new_pte.l3_page.is_valid = 1;
-                set_pte_flags(&new_pte, flags, USER_PTE);
-                next_ptp_2->ent[GET_L3_INDEX(va)].pte = new_pte.pte;
+                int res2 = get_next_ptp(cur_ptp, 2, va, &cur_ptp, &pte, true);
+                // // if (res2 == -ENOMAPPING) return res2;
+                // pte_t new_pte;
+                // new_pte.pte = 0;
+                // new_pte.l3_page.pfn = pa >> 12;
+                // new_pte.l3_page.is_page = 1;
+                // new_pte.l3_page.is_valid = 1;
+                // // set_pte_flags(&new_pte, flags, USER_PTE);
+                // if (va & (KERNEL_OFFSET)) {
+                //         set_pte_flags(&new_pte, flags, USER_PTE);
+                // }
+                // else set_pte_flags(&new_pte, flags, USER_PTE);
+                // next_ptp_2->ent[GET_L3_INDEX(va)].pte = new_pte.pte;
+                pte = &(cur_ptp->ent[GET_L3_INDEX(va)]);
+                pte->pte = 0;
+                pte->l3_page.pfn = ((pa) >> L3_INDEX_SHIFT);
+                pte->l3_page.is_page = 1;
+                pte->l3_page.is_valid = 1;
+                if (va & (KERNEL_OFFSET)) {
+                        set_pte_flags(pte, flags, USER_PTE);
+                } else {
+                        set_pte_flags(pte, flags, USER_PTE);
+                }
                 va += PAGE_SIZE;
                 pa += PAGE_SIZE;
         }
@@ -337,7 +351,8 @@ int unmap_range_in_pgtbl(void *pgtbl, vaddr_t va, size_t len)
                 // if (res3 == -ENOMAPPING) return res3;
                 // invalid all final-level pages.
                 // (pte->l3_page).is_valid = 0;
-                cur_ptp->ent[GET_L3_INDEX(va)].pte = 0;
+                // cur_ptp->ent[GET_L3_INDEX(va)].pte = 0;
+                pte->pte = (pte->pte & (~(0x1ULL)));
                 va += PAGE_SIZE;
         }
         return 0;
@@ -515,6 +530,7 @@ void reconfig_page_table() {
         vmr_prop_t flags_1 = VMR_READ | VMR_WRITE | VMR_DEVICE | VMR_EXEC;
         size_t len_0 = 0x3f000000;
         size_t len_1 = 0x80000000 - 0x3f000000;
+        // unmap_range_in_pgtbl((void*) 0x00000000, 0x00000000, 0x80000000);
         int order = 0;
         void* pgtbl0 = get_pages(order);
         // reconfig normal memory part.
