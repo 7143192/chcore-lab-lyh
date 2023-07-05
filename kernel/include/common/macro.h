@@ -12,17 +12,22 @@
 
 #pragma once
 
-#ifdef CHCORE
 #ifndef __ASM__
 #include <common/kprint.h>
 #endif
-#endif
+
+// the lru_size to imitate real disk physical page.
+#define LRU_SIZE 1
+
+// whether to use LRU to swap pages.
+#define USE_LRU 0
 
 #define ALIGN(n) __attribute__((__aligned__(n)))
 
 #define ROUND_UP(x, n)     (((x) + (n)-1) & ~((n)-1))
 #define ROUND_DOWN(x, n)   ((x) & ~((n)-1))
 #define DIV_ROUND_UP(n, d) (((n) + (d)-1) / (d))
+#define DIV_ROUND_DOWN(n, d) ((n) / (d))
 
 #define IS_ALIGNED(x, a) (((x) & ((typeof(x))(a)-1)) == 0)
 
