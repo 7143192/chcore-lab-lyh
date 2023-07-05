@@ -44,6 +44,17 @@ void fakefs_init() {
 	list_append(&n->node, &fakefs_files);
 }
 
+void sd_fakefs_init(char* rootPath, struct fakefs_file_node* root) 
+{
+	init_list_head(&fakefs_files);
+	spinlock_init(&fs_lock);
+	struct fakefs_file_node *n = (struct fakefs_file_node *)malloc(sizeof(struct fakefs_file_node));
+	init_fakefs_file_node(root);
+	strcpy(root->path, rootPath);
+	n->isdir = true;
+	/* Insert node to fsm_server_entry_mapping */
+	list_append(&root->node, &fakefs_files);
+}
 
 int main(int argc, const char *argv[]) 
 {

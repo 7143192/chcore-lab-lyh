@@ -536,3 +536,22 @@ int init_tmpfs(void)
 
 	return 0;
 }
+
+int init_sd_tmpfs(char* rootPath, struct inode* root, struct dentry* root_dent)
+{
+	root = new_dir();
+	root_dent = new_dent(root, rootPath, 1);
+
+	init_id_manager(&fidman, MAX_NR_FID_RECORDS, DEFAULT_INIT_ID);
+	/**
+	 * Allocate the first id, which should be 0.
+	 * No request should use 0 as the fid.
+	 */
+	chcore_assert(alloc_id(&fidman) == 0);
+
+	init_fs_wrapper();
+
+	mounted = true;
+
+	return 0;
+}

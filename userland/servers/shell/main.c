@@ -71,12 +71,40 @@ int main(int argc, char *argv[])
 			continue;
 		if (builtin_cmd(buf))
 			continue;
+		// if (strcmp(buf, "/sd_driver_test.bin") == 0) {
+		// 	// printf("get into sd case!\n");
+		// 	run_cmd("/sd_driver_test.bin");
+		// 	for(int i = 0; i < 100; i++)
+		//     	__chcore_sys_yield();
+		// }	
 		if ((ret = run_cmd(buf)) < 0) {
 			printf("Cannot run %s, ERROR %d\n", buf, ret);
 		}
+		// for(int i = 0; i < 100; i++)
+		//     __chcore_sys_yield();
+		// if (strcmp(buf, "/sd_driver_test.bin") == 0) {
+		// 	__chcore_sys_putc('/');
+		// 	__chcore_sys_putc('s');
+		// 	__chcore_sys_putc('d');
+		// 	__chcore_sys_putc('_');
+		// 	__chcore_sys_putc('d');
+		// 	__chcore_sys_putc('r');
+		// 	__chcore_sys_putc('i');
+		// 	__chcore_sys_putc('v');
+		// 	__chcore_sys_putc('e');
+		// 	__chcore_sys_putc('r');
+		// 	__chcore_sys_putc('_');
+		// 	__chcore_sys_putc('t');
+		// 	__chcore_sys_putc('e');
+		// 	__chcore_sys_putc('s');
+		// 	__chcore_sys_putc('t');
+		// 	__chcore_sys_putc('.');
+		// 	__chcore_sys_putc('b');
+		// 	__chcore_sys_putc('i');
+		// 	__chcore_sys_putc('n');
+		// 	__chcore_sys_putc('\n');
+		// }	
 	}
 
 	return 0;
 }
-
-

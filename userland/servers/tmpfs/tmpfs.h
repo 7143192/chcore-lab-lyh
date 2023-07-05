@@ -37,6 +37,7 @@ extern struct id_manager fidman;
 extern struct fid_record fid_records[MAX_NR_FID_RECORDS]; // opened file entries.
 
 int init_tmpfs(void);
+int init_sd_tmpfs(char* rootPath, struct inode* root, struct dentry* root_dent);
 
 int tfs_creat(struct inode *dir, const char *name, size_t len);
 int tfs_mkdir(struct inode *dir, const char *name, size_t len);

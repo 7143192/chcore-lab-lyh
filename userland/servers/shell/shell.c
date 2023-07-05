@@ -418,7 +418,15 @@ int run_cmd(char *cmdline)
 		}
 		realPath[i] = '\0';
 	}
+	// printf("realPath = %s\n", realPath);
+	// if (strcmp(realPath, "/sd_driver_test.bin") == 0) {
+	// 	printf("get into sd case!\n");
+	// 	chcore_procm_spawn(realPath, NULL);
+	// }
 	int ret = chcore_procm_spawn(realPath, NULL);
+	while(1) {
+		// __chcore_sys_yield();
+	}
 	/* LAB 5 TODO END */
 	return ret;
 }
