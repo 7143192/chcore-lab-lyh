@@ -5,10 +5,6 @@
 tags
 cscope.*
 *.swp
-.DS_Store
-
-.build_log
-.build_stderr
 
 !/**/firmware/*.bin
 !/**/firmware/*.elf
@@ -19,7 +15,7 @@ _install
 .vscode
 simulate.sh
 debug.sh
-.config*
+.config
 .*-config
 
 asm
@@ -30,5 +26,3 @@ exec_log
 make-tag.sh
 
 __pycache__
-.clangd
-compile_commands.json
